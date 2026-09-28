@@ -1,0 +1,54 @@
+[
+  {
+    "id": "5d20dbe343584575b65c32d6db1ee2b6",
+    "name": "Shopping list",
+    "notes": [
+      {
+        "id": "b9b225d3fa0f4a2b9958a8434aa26bc8",
+        "title": "test note",
+        "body": "test note",
+        "created_at": "2026-09-28T13:56:29.779475+00:00",
+        "updated_at": "2026-09-28T13:57:00.900498+00:00",
+        "status": "cancelled"
+      },
+      {
+        "id": "11608f5eaf334cde90f1b4a3b918bfcd",
+        "title": "Untitled note",
+        "body": "",
+        "created_at": "2026-09-28T13:54:59.443471+00:00",
+        "updated_at": "2026-09-28T13:54:59.443497+00:00",
+        "status": "todo"
+      },
+      {
+        "id": "ace841e23ca6409b97b8835f223762f0",
+        "title": "Untitled note",
+        "body": "",
+        "created_at": "2026-09-28T13:40:48.108163+00:00",
+        "updated_at": "2026-09-28T13:40:48.108186+00:00",
+        "status": "todo"
+      },
+      {
+        "id": "5925a9bcaa7d4293b4cf7bc73fbbbf28",
+        "title": "spiza",
+        "body": "knedle\nčokolada",
+        "created_at": "2026-09-28T13:10:33.946027+00:00",
+        "updated_at": "2026-09-28T13:41:45.831727+00:00",
+        "status": "in_progress"
+      }
+    ]
+  },
+  {
+    "id": "2967a4e2a24041da9c3d9fb9fbed2a10",
+    "name": "ask AI",
+    "notes": [
+      {
+        "id": "d10d8bc6aec44f4c9a082adce8c509b0",
+        "title": "Untitled note",
+        "body": "",
+        "created_at": "2026-09-28T13:15:31.671412+00:00",
+        "updated_at": "2026-09-28T13:15:31.671438+00:00",
+        "status": "todo"
+      }
+    ]
+  }
+]
