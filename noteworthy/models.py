@@ -44,17 +44,23 @@ class Note:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Note:
-        body = str(data.get("body", ""))
-        title = str(data.get("title", "")).strip()
+        if not isinstance(data, dict):
+            raise ValueError("note entries must be objects")
+        required_fields = ("id", "title", "body", "created_at", "updated_at", "status")
+        if any(field not in data for field in required_fields):
+            raise ValueError("note entries must include id, title, body, created_at, updated_at, and status")
+        if any(not isinstance(data[field], str) for field in required_fields):
+            raise ValueError("note entry fields must be strings")
+        title = data["title"].strip()
         if not title:
-            title = body.splitlines()[0][:80] if body else "Untitled note"
+            raise ValueError("note title must not be empty")
         return cls(
-            id=str(data.get("id") or new_id()),
+            id=data["id"],
             title=title,
-            body=body,
-            status=str(data.get("status", "todo")),
-            created_at=str(data.get("created_at") or now_iso()),
-            updated_at=str(data.get("updated_at") or data.get("created_at") or now_iso()),
+            body=data["body"],
+            status=data["status"],
+            created_at=data["created_at"],
+            updated_at=data["updated_at"],
         )
 
 
@@ -71,10 +77,17 @@ class Group:
     def from_dict(cls, data: dict[str, Any]) -> Group:
         if not isinstance(data, dict):
             raise ValueError("group entries must be objects")
-        raw_notes = data.get("notes", [])
+        required_fields = ("id", "name", "notes")
+        if any(field not in data for field in required_fields):
+            raise ValueError("group entries must include id, name, and notes")
+        if not isinstance(data["id"], str):
+            raise ValueError("group id must be a string")
+        if not isinstance(data["name"], str) or not data["name"].strip():
+            raise ValueError("group name must be a non-empty string")
+        raw_notes = data["notes"]
         if not isinstance(raw_notes, list):
             raise ValueError("group notes must be an array")
         if any(not isinstance(item, dict) for item in raw_notes):
             raise ValueError("group notes must contain only objects")
         notes = [Note.from_dict(item) for item in raw_notes]
-        return cls(id=str(data.get("id") or new_id()), name=str(data.get("name") or "New Group"), notes=notes)
+        return cls(id=data["id"], name=data["name"].strip(), notes=notes)

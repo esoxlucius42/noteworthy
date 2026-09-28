@@ -26,10 +26,14 @@ def test_invalid_status_falls_back_to_todo():
 
 def test_storage_round_trip(tmp_path):
     storage = Storage(tmp_path / "notes.json")
-    groups = [Group("Work", [Note("Ship release", "Run the checks", "in_progress")])]
+    groups = [
+        Group("Work", [Note("Ship release", "Run the checks", "in_progress")], id="group-1"),
+        Group("Home", [Note("Buy milk", "Semi-skimmed", "todo")], id="group-2"),
+    ]
     storage.save(groups)
     loaded = storage.load()
-    assert loaded[0].name == "Work"
+    assert [group.id for group in loaded] == ["group-1", "group-2"]
+    assert [group.name for group in loaded] == ["Work", "Home"]
     assert loaded[0].notes[0].status == "in_progress"
 
 
@@ -64,3 +68,28 @@ def test_invalid_note_entry_raises_storage_error(tmp_path):
         pass
     else:
         raise AssertionError("invalid note entries should raise StorageError")
+
+
+def test_missing_group_name_raises_storage_error(tmp_path):
+    path = tmp_path / "notes.json"
+    path.write_text(json.dumps([{"id": "group-1", "notes": []}]), encoding="utf-8")
+    try:
+        Storage(path).load()
+    except StorageError:
+        pass
+    else:
+        raise AssertionError("groups missing a name should raise StorageError")
+
+
+def test_missing_note_fields_raise_storage_error(tmp_path):
+    path = tmp_path / "notes.json"
+    path.write_text(
+        json.dumps([{"id": "group-1", "name": "Valid", "notes": [{"id": "note-1", "body": "Missing title"}]}]),
+        encoding="utf-8",
+    )
+    try:
+        Storage(path).load()
+    except StorageError:
+        pass
+    else:
+        raise AssertionError("notes missing required fields should raise StorageError")

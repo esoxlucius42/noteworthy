@@ -133,6 +133,7 @@ class GroupView(QWidget):
         super().__init__(parent)
         self.group = group
         self.selected_id: str | None = None
+        self.pending_edit_id: str | None = None
         self.query = QLineEdit()
         self.query.setPlaceholderText("Search notes...")
         self.titles_only = QCheckBox("Titles only")
@@ -237,6 +238,9 @@ class GroupView(QWidget):
 
     def _select_item(self, current: QListWidgetItem | None, previous: QListWidgetItem | None = None) -> None:
         del previous
+        if self.save_timer.isActive():
+            self.save_timer.stop()
+            self._edit_current()
         self.selected_id = current.data(Qt.ItemDataRole.UserRole) if current else None
         note = self.current_note()
         if not note:
@@ -268,7 +272,8 @@ class GroupView(QWidget):
         self.status.setCurrentIndex(0)
 
     def _edit_current(self) -> None:
-        note = self.current_note()
+        note = self._note_by_id(self.pending_edit_id or self.selected_id)
+        self.pending_edit_id = None
         if not note:
             return
         note.title = self.title.text().strip() or "Untitled note"
@@ -279,7 +284,11 @@ class GroupView(QWidget):
         self.refresh()
 
     def _schedule_edit_current(self) -> None:
+        self.pending_edit_id = self.selected_id
         self.save_timer.start()
+
+    def _note_by_id(self, note_id: str | None) -> Note | None:
+        return next((note for note in self.group.notes if note.id == note_id), None)
 
     def create_note(self) -> None:
         note = Note("Untitled note", "")
@@ -371,6 +380,7 @@ class MainWindow(QMainWindow):
         if dialog.exec() == QDialog.DialogCode.Accepted and dialog.name.text().strip():
             view.group.name = dialog.name.text().strip()
             self.tabs.setTabText(index, view.group.name)
+            self._update_title()
             self.persist()
 
     def create_note(self) -> None:
