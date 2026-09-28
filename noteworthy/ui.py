@@ -312,7 +312,7 @@ class MainWindow(QMainWindow):
         self.tabs.tabBarDoubleClicked.connect(self.rename_group)
         self.tabs.tabCloseRequested.connect(self.delete_group)
         self.tabs.currentChanged.connect(self._update_title)
-        self.tabs.tabBar().tabMoved.connect(lambda *_: self.persist())
+        self.tabs.tabBar().tabMoved.connect(self._handle_tab_moved)
         self.setCentralWidget(self.tabs)
         self._build_toolbar()
         self._apply_theme()
@@ -389,10 +389,24 @@ class MainWindow(QMainWindow):
         self.persist()
 
     def persist(self) -> None:
+        self._sync_groups_from_tabs()
         try:
             self.storage.save(self.groups)
         except StorageError as exc:
             QMessageBox.critical(self, "Could not save notes", str(exc))
+
+    def _handle_tab_moved(self, *_: int) -> None:
+        self._sync_groups_from_tabs()
+        self.persist()
+
+    def _sync_groups_from_tabs(self) -> None:
+        ordered_groups = []
+        for index in range(self.tabs.count()):
+            view = self.tabs.widget(index)
+            if isinstance(view, GroupView):
+                ordered_groups.append(view.group)
+        if len(ordered_groups) == len(self.groups):
+            self.groups = ordered_groups
 
     def _update_title(self) -> None:
         self.setWindowTitle(f"Noteworthy  /  {self.groups[self.tabs.currentIndex()].name if self.groups else 'New Group'}")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -9,6 +10,8 @@ from .models import Group
 
 
 def data_path() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / "notes.json"
     return Path(__file__).resolve().parent.parent / "notes.json"
 
 
@@ -27,7 +30,9 @@ class Storage:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
             if not isinstance(raw, list):
                 raise ValueError("top-level JSON value must be an array")
-            groups = [Group.from_dict(item) for item in raw if isinstance(item, dict)]
+            if any(not isinstance(item, dict) for item in raw):
+                raise ValueError("top-level array entries must be objects")
+            groups = [Group.from_dict(item) for item in raw]
             return groups or [Group("New Group")]
         except (OSError, json.JSONDecodeError, ValueError, TypeError) as exc:
             raise StorageError(f"Could not load {self.path.name}: {exc}") from exc

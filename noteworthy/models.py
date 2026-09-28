@@ -70,5 +70,9 @@ class Group:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Group:
         raw_notes = data.get("notes", [])
-        notes = [Note.from_dict(item) for item in raw_notes if isinstance(item, dict)]
+        if not isinstance(raw_notes, list):
+            raise ValueError("group notes must be an array")
+        if any(not isinstance(item, dict) for item in raw_notes):
+            raise ValueError("group notes must contain only objects")
+        notes = [Note.from_dict(item) for item in raw_notes]
         return cls(id=str(data.get("id") or new_id()), name=str(data.get("name") or "New Group"), notes=notes)

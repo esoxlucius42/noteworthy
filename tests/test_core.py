@@ -37,3 +37,25 @@ def test_malformed_json_is_not_silently_replaced(tmp_path):
         pass
     else:
         raise AssertionError("malformed JSON should raise StorageError")
+
+
+def test_invalid_group_entry_raises_storage_error(tmp_path):
+    path = tmp_path / "notes.json"
+    path.write_text(json.dumps([{"name": "Valid", "notes": []}, "bad-entry"]), encoding="utf-8")
+    try:
+        Storage(path).load()
+    except StorageError:
+        pass
+    else:
+        raise AssertionError("invalid group entries should raise StorageError")
+
+
+def test_invalid_note_entry_raises_storage_error(tmp_path):
+    path = tmp_path / "notes.json"
+    path.write_text(json.dumps([{"name": "Valid", "notes": [{"title": "Keep"}, "bad-entry"]}]), encoding="utf-8")
+    try:
+        Storage(path).load()
+    except StorageError:
+        pass
+    else:
+        raise AssertionError("invalid note entries should raise StorageError")
