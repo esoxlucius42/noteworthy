@@ -1,0 +1,106 @@
+You are an experienced Python desktop-application developer. Build a polished, maintainable GUI note-management application for todo reminders. The application must allow users to organize notes into thematic groups and track each note's status.
+
+## Technical expectations
+
+- Use Python 3.11+ and a mature desktop GUI toolkit. Prefer PySide6/Qt unless the existing project requires another toolkit.
+- Organize the code into clear modules for the UI, models, filtering, persistence, and application startup.
+- Keep the application runnable as a normal desktop program and make it straightforward to package as an executable.
+- Add focused automated tests for the data model, filtering, serialization, and the required edge cases.
+- Avoid losing user data: validate loaded JSON, handle malformed or missing files gracefully, and save changes atomically where practical.
+
+## User interface
+
+Create a single main window whose primary content is a tabbed note workspace.
+
+### Visual design
+
+- Use a dark theme with a dark blue background. Do not use a pure black-and-white palette.
+- Use high-contrast, light pastel foreground colors for text, controls, status indicators, and selection states.
+- Make the UI readable and usable with keyboard navigation, visible focus states, sensible spacing, and responsive resizing.
+- Use small, consistent symbolic graphics or characters for statuses, such as a checkmark for done and an X for cancelled. Symbols must supplement, not replace, accessible text labels or tooltips.
+- Keep status colors distinct and readable against the dark background; do not communicate status by color alone.
+
+### Groups and tabs
+
+- Each tab represents a thematic group of notes, such as "Shopping list".
+- Allow the user to create, rename, delete, and reorder tabs by dragging them left or right.
+- Provide discoverable controls or context-menu actions for tab operations, with confirmation before destructive deletion.
+- When the final remaining tab is deleted, immediately create a replacement tab named `New Group` so the workspace is never empty.
+- Preserve the selected tab and tab order when the application is restarted.
+
+### Two-pane workspace
+
+Each tab must contain a vertically divided two-pane layout:
+
+- The left pane contains a scrollable list of note cards and the controls used to filter it.
+- The right pane displays and edits the complete contents of the currently selected note.
+- Allow the divider to be resized. Keep the selected note and its editing state clear.
+- Provide actions to create and delete notes. Confirm before deleting a note.
+- When no note is selected, show an intentional empty state rather than a blank or broken editor.
+
+### Note list, filters, and search
+
+- Represent every note as a compact two-line card:
+	- First line: the note title, truncated with an ellipsis when necessary.
+	- Second line: creation date and current status.
+- The original outline refers to the first line as note-body text. Implement a dedicated title field so the requested "Titles only" search option is meaningful; if a legacy note has no title, derive a display title from the first line of its body.
+- Provide a status filter with at least: `Todo`, `In Progress`, `Done`, and `Cancelled`.
+- Provide a date filter for creation date. Include a clear `All dates` option and practical date ranges such as today, the last 7 days, the last 30 days, and a custom range if supported by the toolkit.
+- Allow the status and date filters to be combined. Clearly indicate when filters are active and provide a way to clear them.
+- Provide a case-insensitive text search field.
+- Add a selectable checkbox labeled `Titles only`. When selected, search only the title; when unselected, search both title and note body.
+- Update filtered results promptly as the user changes search text or filters. Preserve the selected note when it remains visible; otherwise select the first visible result or clear the editor.
+- Show a useful empty state when no notes match the current filters.
+
+## Notes
+
+Each note must support:
+
+- A title.
+- A body/content field that can contain multiple lines.
+- A creation timestamp.
+- A last-modified timestamp.
+- One status: `todo`, `in_progress`, `done`, or `cancelled`.
+- A stable unique identifier.
+- Creation, editing, and deletion.
+- Status changes at any time, including changing a `Done` or `Cancelled` note back to an earlier status.
+
+Status must be color-coded and also displayed as text and/or a symbol. Use a dropdown, segmented control, or equivalent clear editor control to change the status.
+
+When a note is created, initialize its creation and modified timestamps consistently and give it the default status `todo`. Editing its title, body, or status must update the modified timestamp.
+
+## Persistence
+
+- Store application data in a file named `notes.json` located beside the application executable. Resolve the executable directory correctly when running from source and when packaged.
+- The top-level JSON value must be an array of tab/group objects.
+- Each tab object must contain a stable identifier, a name, an explicit order represented by the array position, and an array of note objects.
+- Each note object must contain at least `id`, `title`, `body`, `created_at`, `updated_at`, and `status`.
+- Store timestamps in an unambiguous, documented format such as ISO 8601. Display note dates in local time using the exact `dd.MM.yyyy` format, for example `28.09.2026`.
+- On startup, load `notes.json` and populate tabs and notes. If the file is missing, initialize one tab named `New Group`. If the file is malformed or contains invalid records, show a clear error and recover without silently overwriting the original file.
+- Automatically save after every data-changing operation. There must be no dedicated Save button.
+- Data-changing operations include creating, deleting, renaming, and reordering tabs; creating and deleting notes; editing note title or body; and changing note status.
+- Keep the in-memory UI and persisted data synchronized, and surface save failures to the user.
+
+## Keyboard navigation and accessibility
+
+- `Tab` must move between tabs/groups in a predictable way. If the toolkit's standard Tab behavior conflicts with text editing, provide a clearly documented and discoverable alternative for moving between groups while preserving normal text-field navigation.
+- Up and Down arrow keys must move through the visible note list when the list has focus.
+- Enter or an equivalent standard action should open/focus the selected note for editing where appropriate.
+- Provide keyboard-accessible equivalents for all important actions, visible focus indicators, accessible names, and tooltips for unfamiliar icons.
+
+## Acceptance criteria
+
+The implementation is complete when:
+
+1. The application starts with existing data restored from `notes.json`, or with a `New Group` tab when no valid data exists.
+2. Users can create, rename, delete, and reorder groups, including the final-tab replacement behavior.
+3. Users can create, edit, delete, select, and change the status of notes without status-transition restrictions.
+4. Note cards show a truncated title, creation date, and readable status; the full note is editable in the right pane.
+5. Status, date, and case-insensitive text filters work independently and in combination, including the `Titles only` option.
+6. Every mutation is automatically persisted and survives a restart.
+7. Missing, malformed, or partially invalid JSON does not crash the application or silently destroy the user's original data.
+8. The core data and filtering behavior is covered by automated tests, and the project includes clear run/test instructions.
+
+Before implementing, inspect the existing repository and preserve its conventions. Where a requirement is ambiguous, choose the simplest behavior consistent with this specification, document the decision briefly, and keep the design easy to revise.
+
+
