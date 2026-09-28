@@ -364,12 +364,13 @@ class MainWindow(QMainWindow):
         self.rename_group(self.tabs.currentIndex())
 
     def rename_group(self, index: int) -> None:
-        if index < 0 or index >= len(self.groups):
+        view = self.tabs.widget(index)
+        if not isinstance(view, GroupView):
             return
-        dialog = RenameDialog(self.groups[index].name, self)
+        dialog = RenameDialog(view.group.name, self)
         if dialog.exec() == QDialog.DialogCode.Accepted and dialog.name.text().strip():
-            self.groups[index].name = dialog.name.text().strip()
-            self.tabs.setTabText(index, self.groups[index].name)
+            view.group.name = dialog.name.text().strip()
+            self.tabs.setTabText(index, view.group.name)
             self.persist()
 
     def create_note(self) -> None:
@@ -415,11 +416,8 @@ class MainWindow(QMainWindow):
             self.groups = ordered_groups
 
     def _update_title(self) -> None:
-        index = self.tabs.currentIndex()
-        if 0 <= index < len(self.groups):
-            group_name = self.groups[index].name
-        else:
-            group_name = "New Group"
+        view = self.tabs.currentWidget()
+        group_name = view.group.name if isinstance(view, GroupView) else "New Group"
         self.setWindowTitle(f"Noteworthy  /  {group_name}")
 
     def _apply_theme(self) -> None:

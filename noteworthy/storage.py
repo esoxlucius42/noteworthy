@@ -40,6 +40,7 @@ class Storage:
     def save(self, groups: list[Group]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         payload = json.dumps([group.to_dict() for group in groups], indent=2, ensure_ascii=False)
+        temporary_path: Path | None = None
         try:
             with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=self.path.parent, delete=False) as handle:
                 handle.write(payload)
@@ -48,4 +49,6 @@ class Storage:
                 temporary_path = Path(handle.name)
             temporary_path.replace(self.path)
         except OSError as exc:
+            if temporary_path is not None:
+                temporary_path.unlink(missing_ok=True)
             raise StorageError(f"Could not save {self.path.name}: {exc}") from exc

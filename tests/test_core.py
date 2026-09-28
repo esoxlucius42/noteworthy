@@ -19,6 +19,11 @@ def test_status_and_date_filters_can_be_combined():
     assert not note_matches(note, status="todo", date_filter="today")
 
 
+def test_invalid_status_falls_back_to_todo():
+    note = Note("Broken", status="invalid")
+    assert note.status == "todo"
+
+
 def test_storage_round_trip(tmp_path):
     storage = Storage(tmp_path / "notes.json")
     groups = [Group("Work", [Note("Ship release", "Run the checks", "in_progress")])]
