@@ -12,7 +12,7 @@ from .models import Group
 def data_path() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent / "notes.json"
-    return Path(__file__).resolve().parent.parent / "notes.json"
+    return Path.cwd() / "notes.json"
 
 
 class StorageError(Exception):

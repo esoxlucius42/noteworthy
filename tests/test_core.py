@@ -1,5 +1,6 @@
 import json
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 from noteworthy.filters import note_matches
 from noteworthy.models import Group, Note
@@ -35,6 +36,36 @@ def test_storage_round_trip(tmp_path):
     assert [group.id for group in loaded] == ["group-1", "group-2"]
     assert [group.name for group in loaded] == ["Work", "Home"]
     assert loaded[0].notes[0].status == "in_progress"
+
+
+def test_empty_array_loads_default_group(tmp_path):
+    path = tmp_path / "notes.json"
+    path.write_text("[]", encoding="utf-8")
+    loaded = Storage(path).load()
+    assert len(loaded) == 1
+    assert loaded[0].name == "New Group"
+
+
+def test_save_cleans_up_temporary_file_on_failure(tmp_path, monkeypatch):
+    storage = Storage(tmp_path / "notes.json")
+    original_replace = Path.replace
+
+    def fail_replace(self, target):
+        raise OSError("replace failed")
+
+    monkeypatch.setattr(Path, "replace", fail_replace)
+    try:
+        try:
+            storage.save([Group("Work", [Note("Ship release")], id="group-1")])
+        except StorageError:
+            pass
+        else:
+            raise AssertionError("save should raise StorageError when replace fails")
+    finally:
+        monkeypatch.setattr(Path, "replace", original_replace)
+
+    leftover_files = [path for path in tmp_path.iterdir() if path.name != "notes.json"]
+    assert leftover_files == []
 
 
 def test_malformed_json_is_not_silently_replaced(tmp_path):

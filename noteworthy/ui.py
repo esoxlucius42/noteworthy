@@ -272,10 +272,17 @@ class GroupView(QWidget):
             self.status.setStyleSheet(f"QComboBox#noteStatus {{ color: {STATUS_COLORS[status]}; }}")
 
     def _clear_editor(self) -> None:
+        self.pending_edit_id = None
         self.selected_id = None
+        self.title.blockSignals(True)
+        self.body.blockSignals(True)
+        self.status.blockSignals(True)
         self.title.clear()
         self.body.clear()
         self.status.setCurrentIndex(0)
+        self.title.blockSignals(False)
+        self.body.blockSignals(False)
+        self.status.blockSignals(False)
 
     def _edit_current(self) -> None:
         note = self._note_by_id(self.pending_edit_id or self.selected_id)
@@ -386,7 +393,8 @@ class MainWindow(QMainWindow):
             return
         dialog = RenameDialog(view.group.name, self)
         if dialog.exec() == QDialog.DialogCode.Accepted and dialog.name.text().strip():
-            view.group.name = dialog.name.text().strip()
+            new_name = dialog.name.text().strip()
+            view.group.name = new_name
             self.tabs.setTabText(index, view.group.name)
             self._update_title()
             self.persist()
@@ -418,6 +426,11 @@ class MainWindow(QMainWindow):
         try:
             self.storage.save(self.groups)
         except StorageError as exc:
+            try:
+                self.groups = self.storage.load()
+                self._populate()
+            except StorageError:
+                pass
             QMessageBox.critical(self, "Could not save notes", str(exc))
 
     def _handle_tab_moved(self, *_: int) -> None:
