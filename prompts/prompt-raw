@@ -1,0 +1,40 @@
+you are experinced python developer and your task is to create a gui notes managing app, notes are todo reminders and have completion status
+
+requirements
+
+gui
+must be dark, but not black and white (high contrast). use dark blue background and light pastelle colors for foreground
+main window is filled with tabbed container
+each tab represents thematic group of notes (example: shopping list)
+tab can be created, deleted dragged to lefto or right or renamed
+when last tab is deleted, automatically create new tab and name it new group
+tab has two panes and is divided vertically, left pane is scrollable list of notes represented as cards, right side displays selected note contents
+notes pane has filters so displayed motes can be filtered by status
+notes pane has additional filter by date and filters can be combined
+notes pane has search box so that notes can be filtered by text
+serch box has selectable check box 'titles only' that switches search from only in titles or note body included when searching
+search is case insensitive
+use some basic graphics like characters to diplay checkmarks for done status, X for cancelled and so on
+
+notes
+appear as a two text line card, first line shows text from note body, truncated to fit card with, second line shows note creation date, and status as todo, in progress, done, cancelled
+each status is color coded and can be changed at any time (even cancelled or done notes can be changed to previous statuses)
+notes can be created or deleted
+
+Storage
+use json file notes.json to store app data
+file is in the same folder as app executable
+json architecture: top level is array of objects that represent tabs
+every tab object has array of objects that represent individual notes
+note object has fields that store note body, creation date, status, ....
+
+Navigation
+tab key switches tabs
+up/down keys move through note list
+
+Behaviour
+when app starts load json data and fill tabs
+after user makes changes automatically save json, there is no dedicated save button
+changes include tabs (create, delete, rename, reposition); notes (create, delete, change status, type)
+
+
