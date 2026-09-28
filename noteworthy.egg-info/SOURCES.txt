@@ -1,0 +1,16 @@
+LICENSE
+README.md
+pyproject.toml
+noteworthy/__init__.py
+noteworthy/filters.py
+noteworthy/main.py
+noteworthy/models.py
+noteworthy/storage.py
+noteworthy/ui.py
+noteworthy.egg-info/PKG-INFO
+noteworthy.egg-info/SOURCES.txt
+noteworthy.egg-info/dependency_links.txt
+noteworthy.egg-info/entry_points.txt
+noteworthy.egg-info/requires.txt
+noteworthy.egg-info/top_level.txt
+tests/test_core.py
