@@ -215,7 +215,13 @@ class GroupView(QWidget):
         self.list.clear()
         visible_notes = [
             note for note in self.group.notes
-            if note_matches(note, self.query.text(), self.titles_only.isChecked(), self.status_filter.selected_statuses(), self.date_filter.currentData())
+            if note_matches(
+                note,
+                self.query.text(),
+                titles_only=self.titles_only.isChecked(),
+                status=self.status_filter.selected_statuses(),
+                date_filter=self.date_filter.currentData(),
+            )
         ]
         sort_mode = self.sort_filter.currentData()
         if sort_mode == "status":
@@ -373,6 +379,8 @@ class MainWindow(QMainWindow):
         self.rename_group(self.tabs.currentIndex())
 
     def rename_group(self, index: int) -> None:
+        if index < 0:
+            return
         view = self.tabs.widget(index)
         if not isinstance(view, GroupView):
             return
