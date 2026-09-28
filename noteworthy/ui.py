@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QTimer, Qt, Signal
 from PySide6.QtGui import QAction, QColor, QIcon, QKeySequence, QPainter, QPalette, QPixmap
 from PySide6.QtWidgets import (
     QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit,
@@ -157,7 +157,10 @@ class GroupView(QWidget):
         for value in STATUSES:
             self.status.addItem(f"{STATUS_SYMBOLS[value]}  {STATUS_LABELS[value]}", value)
             self.status.setItemData(self.status.count() - 1, QColor(STATUS_COLORS[value]), Qt.ItemDataRole.ForegroundRole)
-        self.save_timer = None
+        self.save_timer = QTimer(self)
+        self.save_timer.setSingleShot(True)
+        self.save_timer.setInterval(250)
+        self.save_timer.timeout.connect(self._edit_current)
         self._build()
         self._connect()
         self.refresh()
@@ -200,8 +203,8 @@ class GroupView(QWidget):
         self.status_filter.changed.connect(self.refresh)
         self.date_filter.currentIndexChanged.connect(self.refresh)
         self.sort_filter.currentIndexChanged.connect(self.refresh)
-        self.title.textChanged.connect(self._edit_current)
-        self.body.textChanged.connect(self._edit_current)
+        self.title.textChanged.connect(self._schedule_edit_current)
+        self.body.textChanged.connect(self._schedule_edit_current)
         self.status.currentIndexChanged.connect(self._edit_current)
         self.status.currentIndexChanged.connect(self._update_status_color)
 
@@ -274,6 +277,9 @@ class GroupView(QWidget):
         note.touch()
         self.changed.emit()
         self.refresh()
+
+    def _schedule_edit_current(self) -> None:
+        self.save_timer.start()
 
     def create_note(self) -> None:
         note = Note("Untitled note", "")
@@ -409,7 +415,12 @@ class MainWindow(QMainWindow):
             self.groups = ordered_groups
 
     def _update_title(self) -> None:
-        self.setWindowTitle(f"Noteworthy  /  {self.groups[self.tabs.currentIndex()].name if self.groups else 'New Group'}")
+        index = self.tabs.currentIndex()
+        if 0 <= index < len(self.groups):
+            group_name = self.groups[index].name
+        else:
+            group_name = "New Group"
+        self.setWindowTitle(f"Noteworthy  /  {group_name}")
 
     def _apply_theme(self) -> None:
         self.setStyleSheet("""

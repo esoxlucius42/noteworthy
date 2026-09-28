@@ -69,6 +69,8 @@ class Group:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Group:
+        if not isinstance(data, dict):
+            raise ValueError("group entries must be objects")
         raw_notes = data.get("notes", [])
         if not isinstance(raw_notes, list):
             raise ValueError("group notes must be an array")
